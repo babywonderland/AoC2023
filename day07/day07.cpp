@@ -17,24 +17,29 @@ enum class CardLabelv1 {
 	// leave 0 as an invalid value
 	C2=1, C3, C4, C5, C6, C7, C8, C9, CT, CJ, CQ, CK, CA
 };
-CardLabelv1 make_cardlabel1(const char cc) {
+enum class CardLabelv2 {
+	// leave 0 as an invalid value
+	CJ=1, C2, C3, C4, C5, C6, C7, C8, C9, CT, CQ, CK, CA
+};
+template<typename DeckType>
+DeckType  make_cardlabel(const char cc) {
 	switch (cc) {
-		case '2': return CardLabelv1::C2;
-		case '3': return CardLabelv1::C3;
-		case '4': return CardLabelv1::C4;
-		case '5': return CardLabelv1::C5;
-		case '6': return CardLabelv1::C6;
-		case '7': return CardLabelv1::C7;
-		case '8': return CardLabelv1::C8;
-		case '9': return CardLabelv1::C9;
-		case 'T': return CardLabelv1::CT;
-		case 'J': return CardLabelv1::CJ;
-		case 'Q': return CardLabelv1::CQ;
-		case 'K': return CardLabelv1::CK;
-		case 'A': return CardLabelv1::CA;
+		case '2': return DeckType::C2;
+		case '3': return DeckType::C3;
+		case '4': return DeckType::C4;
+		case '5': return DeckType::C5;
+		case '6': return DeckType::C6;
+		case '7': return DeckType::C7;
+		case '8': return DeckType::C8;
+		case '9': return DeckType::C9;
+		case 'T': return DeckType::CT;
+		case 'J': return DeckType::CJ;
+		case 'Q': return DeckType::CQ;
+		case 'K': return DeckType::CK;
+		case 'A': return DeckType::CA;
 		default: {
-			std::cerr << "Error: invalid CardLabelv1 " << cc << std::endl;
-			return static_cast<CardLabelv1>(0);
+			std::cerr << "Error: invalid label " << cc << std::endl;
+			return static_cast<DeckType>(0);
 		}
 	}
 }
@@ -56,32 +61,6 @@ std::ostream& operator<<(std::ostream& out, const CardLabelv1& val) {
 		default: out << "??";
 	}
 	return out;
-}
-
-enum class CardLabelv2 {
-	// leave 0 as an invalid value
-	CJ=1, C2, C3, C4, C5, C6, C7, C8, C9, CT, CQ, CK, CA
-};
-CardLabelv2 make_cardlabel2(const char cc) {
-	switch (cc) {
-		case 'J': return CardLabelv2::CJ;
-		case '2': return CardLabelv2::C2;
-		case '3': return CardLabelv2::C3;
-		case '4': return CardLabelv2::C4;
-		case '5': return CardLabelv2::C5;
-		case '6': return CardLabelv2::C6;
-		case '7': return CardLabelv2::C7;
-		case '8': return CardLabelv2::C8;
-		case '9': return CardLabelv2::C9;
-		case 'T': return CardLabelv2::CT;
-		case 'Q': return CardLabelv2::CQ;
-		case 'K': return CardLabelv2::CK;
-		case 'A': return CardLabelv2::CA;
-		default: {
-			std::cerr << "Error: invalid CardLabelv2 " << cc << std::endl;
-			return static_cast<CardLabelv2>(0);
-		}
-	}
 }
 std::ostream& operator<<(std::ostream& out, const CardLabelv2& val) {
 	switch (val) {
@@ -121,29 +100,18 @@ std::ostream& operator<<(std::ostream& out, const HandType& val) {
 	return out;
 }
 
-class CamelHandv1 {
+template<typename DeckType>
+class CamelHand {
 	public:
-	std::array<CardLabelv1, 5> cards;
+	std::array<DeckType, 5> cards;
 	int bid;
 
-	CamelHandv1(const std::string& input);
-	std::strong_ordering operator<=>(const CamelHandv1&) const;
-
-	std::string str() const;
-	HandType handtype() const; // highest matching hand type
-};
-
-class CamelHandv2 {
-	public:
-	std::array<CardLabelv2, 5> cards;
-	int bid;
-
-	CamelHandv2(const std::string& input);
-	std::strong_ordering operator<=>(const CamelHandv2&) const;
+	CamelHand(const std::string& input);
+	std::strong_ordering operator<=>(const CamelHand<DeckType>&) const;
 
 	std::string str() const;
 	// return highest matching hand type, and joker-value used (or CJ if unused)
-	std::tuple<HandType,CardLabelv2> handtype() const;
+	std::tuple<HandType,DeckType> handtype() const;
 };
 
 void dump(const std::vector<std::string>& input) {
@@ -162,74 +130,6 @@ typename std::enable_if_t<std::is_integral<TT>::value> dump(const std::vector<TT
 	for (size_t aa=0; aa<input.size(); aa++) {
 		std::cout << aa << ": " << input[aa] << std::endl;
 	}
-}
-
-template <typename TT>
-typename std::enable_if_t<! std::is_integral<TT>::value, std::string>
-join(const std::vector<TT>& input, const std::string& delim=" ") {
-	std::string result;
-	bool first = true;
-	for (const auto& aa : input) {
-		if (first) {
-			first = false;
-		}
-		else {
-			result += delim;
-		}
-		result += aa.str();
-	}
-	return result;
-}
-template <typename TT>
-typename std::enable_if_t<std::is_integral<TT>::value, std::string>
-join(const std::vector<TT>& input, const std::string& delim=" ") {
-	std::string result;
-	bool first = true;
-	for (const auto& aa : input) {
-		if (first) {
-			first = false;
-		}
-		else {
-			result += delim;
-		}
-		result += std::to_string(aa);
-	}
-	return result;
-}
-template <>
-std::string join(const std::vector<std::string>& input, const std::string& delim) {
-	std::string result;
-	bool first = true;
-	for (const auto& aa : input) {
-		if (first) {
-			first = false;
-		}
-		else {
-			result += delim;
-		}
-		result += aa;
-	}
-	return result;
-}
-
-std::vector<std::string> split(const std::string& input, const std::string& delim=" ") {
-	std::vector<std::string> results;
-	size_t pos = 0;
-	size_t ppos = pos;
-	while ((pos = input.find(delim, ppos)) != input.npos) {
-		results.emplace_back(input.substr(ppos, pos-ppos));
-		ppos = pos + delim.size();
-	}
-	if (ppos < input.size()) {
-		results.emplace_back(input.substr(ppos));
-	}
-	return results;
-}
-
-std::string str_tolower(std::string input) {
-	std::transform(input.begin(), input.end(), input.begin(),
-		[](unsigned char cc) { return std::tolower(cc); });
-	return input;
 }
 
 std::vector<std::string> get_input() {
@@ -257,10 +157,11 @@ std::vector<std::string> get_input(const std::string& file) {
 	return input;
 }
 
-CamelHandv1::CamelHandv1(const std::string& input) {
+template<typename DeckType>
+CamelHand<DeckType>::CamelHand(const std::string& input) {
 	size_t idx = 0;
 	for (/*no-op*/; idx<5; idx++) {
-		cards[idx] = make_cardlabel1(input[idx]);
+		cards[idx] = make_cardlabel<DeckType>(input[idx]);
 	}
 	try {
 		bid = std::stoi(input.substr(idx));
@@ -270,80 +171,8 @@ CamelHandv1::CamelHandv1(const std::string& input) {
 	}
 }
 
-std::strong_ordering CamelHandv1::operator<=>(const CamelHandv1& other) const {
-	if (auto cmp = handtype()<=>other.handtype(); cmp!=0) {
-		return cmp;
-	}
-	for (size_t aa=0; aa<5; aa++) {
-		if (auto cmp = static_cast<int>(cards[aa])<=>static_cast<int>(other.cards[aa]); cmp!=0) {
-			return cmp;
-		}
-	}
-	return bid<=>other.bid;
-}
-
-std::string CamelHandv1::str() const {
-	std::stringstream out;
-	out << "hand{";
-	for (const CardLabelv1& cc : cards) {
-		out << cc;
-	}
-	out << " (" << handtype() << "), ";
-	out << bid << "}";
-	return out.str();
-}
-
-HandType CamelHandv1::handtype() const {
-	std::array<size_t, 14> counts;
-	counts.fill(0);
-	for (const CardLabelv1& cc : cards) {
-		counts[static_cast<size_t>(cc)]++;
-	}
-	size_t doubles = 0;
-	size_t triples = 0;
-	for (size_t aa=1; aa<counts.size(); aa++) {
-		if (counts[aa] >= 5) {
-			return HandType::M5;
-		}
-		else if (counts[aa] >= 4) {
-			return HandType::M4;
-		}
-		else if (counts[aa] >= 3) {
-			triples++;
-		}
-		else if (counts[aa] >= 2) {
-			doubles++;
-		}
-	}
-	if ((triples > 0) && (doubles > 0)) {
-		return HandType::M3M2;
-	}
-	else if (triples > 0) {
-		return HandType::M3;
-	}
-	else if (doubles > 1) {
-		return HandType::M2M2;
-	}
-	else if (doubles > 0) {
-		return HandType::M2;
-	}
-	return HandType::M0;
-}
-
-CamelHandv2::CamelHandv2(const std::string& input) {
-	size_t idx = 0;
-	for (/*no-op*/; idx<5; idx++) {
-		cards[idx] = make_cardlabel2(input[idx]);
-	}
-	try {
-		bid = std::stoi(input.substr(idx));
-	}
-	catch (...) {
-		std::cerr << "Error: invalid bid in input, " << input << std::endl;
-	}
-}
-
-std::strong_ordering CamelHandv2::operator<=>(const CamelHandv2& other) const {
+template<typename DeckType>
+std::strong_ordering CamelHand<DeckType>::operator<=>(const CamelHand<DeckType>& other) const {
 	if (auto cmp = std::get<0>(handtype())<=>std::get<0>(other.handtype()); cmp!=0) {
 		return cmp;
 	}
@@ -355,39 +184,42 @@ std::strong_ordering CamelHandv2::operator<=>(const CamelHandv2& other) const {
 	return bid<=>other.bid;
 }
 
-std::string CamelHandv2::str() const {
+template<typename DeckType>
+std::string CamelHand<DeckType>::str() const {
 	std::stringstream out;
 	out << "hand{";
-	for (const CardLabelv2& cc : cards) {
+	for (const auto& cc : cards) {
 		out << cc;
 	}
 	auto [my_type, my_jval] = handtype();
 	out << " (" << my_type;
-	if (std::find(cards.begin(), cards.end(), CardLabelv2::CJ) != cards.end()) {
+	if (std::find(cards.begin(), cards.end(), DeckType::CJ) != cards.end()) {
 		out << ";j=" << my_jval;
 	}
 	out << "), " << bid << "}";
 	return out.str();
 }
 
-std::tuple<HandType,CardLabelv2> CamelHandv2::handtype() const {
-	std::tuple<HandType,CardLabelv2> result;
+template<typename DeckType>
+std::tuple<HandType,DeckType> CamelHand<DeckType>::handtype() const {
+	std::tuple<HandType,DeckType> result;
 	std::array<size_t, 14> counts;
 	counts.fill(0);
-	for (const CardLabelv2& cc : cards) {
+	for (const auto& cc : cards) {
 		counts[static_cast<size_t>(cc)]++;
 	}
-	const size_t cj_idx = static_cast<size_t>(CardLabelv2::CJ);
+	const size_t cj_idx = static_cast<size_t>(DeckType::CJ);
 	if (counts[cj_idx] > 0) {
 		size_t j_count = counts[cj_idx];
 		counts[cj_idx] = 0;
 		if (j_count == 5) {
-			counts[static_cast<size_t>(CardLabelv2::CA)] = 5;
+			counts[static_cast<size_t>(DeckType::CA)] = 5;
+			std::get<1>(result) = DeckType::CA;
 		}
 		else {
 			auto most_iter = std::max_element(counts.begin(), counts.end());
 			(*most_iter) += j_count;
-			std::get<1>(result) = static_cast<CardLabelv2>(std::distance(counts.begin(), most_iter));
+			std::get<1>(result) = static_cast<DeckType>(std::distance(counts.begin(), most_iter));
 		}
 	}
 	size_t doubles = 0;
@@ -426,17 +258,54 @@ std::tuple<HandType,CardLabelv2> CamelHandv2::handtype() const {
 	return result;
 }
 
-std::vector<CamelHandv1> parse_handsv1(const std::vector<std::string>& input) {
-	std::vector<CamelHandv1> results;
-	for (const std::string& line : input) {
-		if (line.empty()) { continue; }
-		results.emplace_back(line);
+template<>
+std::tuple<HandType,CardLabelv1> CamelHand<CardLabelv1>::handtype() const {
+	std::tuple<HandType,CardLabelv1> result;
+	std::get<1>(result) = CardLabelv1::CJ;
+	std::array<size_t, 14> counts;
+	counts.fill(0);
+	for (const auto& cc : cards) {
+		counts[static_cast<size_t>(cc)]++;
 	}
-	return results;
+	size_t doubles = 0;
+	size_t triples = 0;
+	for (size_t aa=1; aa<counts.size(); aa++) {
+		if (counts[aa] >= 5) {
+			std::get<0>(result) = HandType::M5;
+			return result;
+		}
+		else if (counts[aa] >= 4) {
+			std::get<0>(result) = HandType::M4;
+			return result;
+		}
+		else if (counts[aa] >= 3) {
+			triples++;
+		}
+		else if (counts[aa] >= 2) {
+			doubles++;
+		}
+	}
+	if ((triples > 0) && (doubles > 0)) {
+		std::get<0>(result) = HandType::M3M2;
+	}
+	else if (triples > 0) {
+		std::get<0>(result) = HandType::M3;
+	}
+	else if (doubles > 1) {
+		std::get<0>(result) = HandType::M2M2;
+	}
+	else if (doubles > 0) {
+		std::get<0>(result) = HandType::M2;
+	}
+	else {
+		std::get<0>(result) = HandType::M0;
+	}
+	return result;
 }
 
-std::vector<CamelHandv2> parse_handsv2(const std::vector<std::string>& input) {
-	std::vector<CamelHandv2> results;
+template<typename DeckType>
+std::vector<CamelHand<DeckType>> parse_hands(const std::vector<std::string>& input) {
+	std::vector<CamelHand<DeckType>> results;
 	for (const std::string& line : input) {
 		if (line.empty()) { continue; }
 		results.emplace_back(line);
@@ -487,13 +356,13 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	if (part == 2) {
-		std::vector<CamelHandv2> hands = parse_handsv2(input);
+		std::vector<CamelHand<CardLabelv2>> hands = parse_hands<CardLabelv2>(input);
 		// std::sort(hands.begin(), hands.end());
 		// dump(hands);
 		std::cout << answer(hands) << std::endl;
 	}
 	else {
-		std::vector<CamelHandv1> hands = parse_handsv1(input);
+		std::vector<CamelHand<CardLabelv1>> hands = parse_hands<CardLabelv1>(input);
 		// std::sort(hands.begin(), hands.end());
 		// dump(hands);
 		std::cout << answer(hands) << std::endl;
