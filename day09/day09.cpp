@@ -161,10 +161,8 @@ std::vector<std::string> get_input(const std::string& file) {
 }
 
 bool all_zero(const std::vector<Series::value_type>& tocheck) {
-	for (const Series::value_type& nn : tocheck) {
-		if (nn != 0) { return false; }
-	}
-	return true;
+	return std::all_of(tocheck.begin(), tocheck.end(),
+		std::bind(std::equal_to<>(), 0, std::placeholders::_1));
 };
 
 std::vector<Series> parse_input(const std::vector<std::string>& input, int) {
@@ -189,9 +187,7 @@ std::vector<Series> parse_input(const std::vector<std::string>& input, int) {
 			measurement.coefficients.push_back(nums[0]);
 			std::vector<Series::value_type> diffs;
 			std::transform(++nums.begin(), nums.end(), nums.begin(), std::back_inserter(diffs),
-				[](const Series::value_type v2, const Series::value_type v1) {
-					return v2 - v1;
-				});
+				std::minus<>());
 			nums = diffs;
 		}
 		result.push_back(std::move(measurement));
