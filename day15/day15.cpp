@@ -1,6 +1,7 @@
 // c++ -Wall -Wextra -pedantic -O3 -std=c++20 day15.cpp -o day15 && time ./day15 day15in.txt 1
 // vi:set noet ts=4 sw=4:
 #include <algorithm>
+#include <array>
 #include <compare>
 #include <fstream>
 #include <functional>
